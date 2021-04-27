@@ -1,21 +1,42 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 
 <h1>New Item</h1>
 
-<form>
-    <fieldset>
-        <legend>Please enter your information:</legend>
-
-
-
-        <!-- TODO: Remove the next paragraph and use the `form` object passed in 
-            from the route to render a form. -->
-        <p><em>Form fields go here!</em></p>
-
-        <input type="submit" value="Submit">
-    </fieldset>
+<form action="{{ url_for('main.new_item') }}" method="POST">
+  {{ form.csrf_token }}
+  <fieldset>
+    <legend>Enter an item</legend>
+    <div>
+      {{ form.name.label }} {{ form.name }} {% for error in form.name.errors %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <div>
+      {{ form.price.label }} {{ form.price }} {% for error in form.price.errors
+      %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <div>
+      {{ form.category.label }} {{ form.category }} {% for error in
+      form.category.errors %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <div>
+      {{ form.photo_url.label }} {{ form.photo_url }} {% for error in
+      form.photo_url.errors %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    <div>
+      {{ form.store.label }} {{ form.store }} {% for error in form.store.errors
+      %}
+      <p class="error">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {{ form.submit }}
+  </fieldset>
 </form>
-
 
 {% endblock %}
