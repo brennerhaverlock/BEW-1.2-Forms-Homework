@@ -1,21 +1,19 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import date, datetime
-from grocery_app.models import GroceryStore, GroceryItem
-from grocery_app.forms import GroceryItemForm, GroceryStoreForm
+from grocery_app.models import GroceryStore, GroceryItem, User
+from grocery_app.forms import GroceryItemForm, GroceryStoreForm, LoginForm, SignUpForm
+from grocery_app import bcrypt
 
-
-# Import app and db from events_app package so that we can run app
+# Import app and db from events_app package needed to start application
 from grocery_app import app, db
 
 main = Blueprint("main", __name__)
+auth = Blueprint("auth", __name__)
+
 ##########################################
 #           Auth                       #
 ##########################################
-
-# routes.py
-
-auth = Blueprint("auth", __name__)
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -42,9 +40,11 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            print('You are logged in')
             login_user(user, remember=True)
             next_page = request.args.get('next')
             return redirect(next_page if next_page else url_for('main.homepage'))
+    print('You are not logged in')
     return render_template('login.html', form=form)
 
 @auth.route('/logout')
@@ -82,7 +82,7 @@ def new_store():
         db.session.add(store)
         db.session.commit()
 
-        flash('New store was created successfully.')
+        flash('New store was created')
         return redirect(url_for('main.store_detail', store_id=store.id))
 
     return render_template('new_store.html', form = form)
@@ -157,4 +157,22 @@ def item_detail(item_id):
 
     # TODO: Send the form to the template and use it to render the form fields
     return render_template('item_detail.html', item=item, form = form)
+
+@main.route('/add_to_cart/<item_id>', methods=['POST'])
+@login_required
+def add_to_cart(item_id):
+    user = current_user
+    item = GroceryItem.query.get(item_id)
+    user.cart_items.append(item)
+    db.session.add(user)
+    db.session.commit()
+    flash('Item added to cart successfully')
+    return redirect(url_for('main.view_cart'))
+
+@main.route('/view_cart')
+@login_required
+def view_cart():
+    user = current_user
+
+    return render_template('view_cart.html', user=user)
 
